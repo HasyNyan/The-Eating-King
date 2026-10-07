@@ -1,4 +1,5 @@
 #include "Main.h"
+#include "SceneManager.h"
 #include "Game.h"
 
 char KeyBuffer[256];
@@ -20,7 +21,7 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
 	SetOutApplicationLogValidFlag( FALSE );
 	ChangeWindowMode( TRUE );
-	SetMainWindowText( "サンプル" );
+	SetMainWindowText( "The Eating King" );
 	SetBackgroundColor( 100, 100, 100 );
 
 	SetDoubleStartValidFlag( TRUE );
@@ -40,7 +41,9 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	MouseLeftFrame = 0;
 	MouseRightFrame = 0;
 
-	GameInit();
+	//シーンマネージャーの初期化
+	SceneManager sceneManager;
+	sceneManager.ChangeScene<TitleScene>();//最初のシーンを登録
 
 	while( TRUE )
 	{
@@ -63,8 +66,8 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		NowMouseX = GetMouseX();
 		NowMouseY = GetMouseY();
 
-		GameUpdate();
-		GameRender();
+		sceneManager.Update();
+		sceneManager.Draw();
 
 		BeforeMouseX = NowMouseX;
 		BeforeMouseY = NowMouseY;
@@ -74,8 +77,6 @@ int WINAPI WinMain( _In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 		if( ProcessMessage() )	break;
 		if( CheckHitKey( KEY_INPUT_ESCAPE ) )	break;
 	}
-
-	GameExit();
 
 	DxLib_End();
 	return 0;

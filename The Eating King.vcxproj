@@ -146,6 +146,7 @@
     <ClInclude Include="program\Game.h" />
     <ClInclude Include="program\Main.h" />
     <ClInclude Include="program\pch.h" />
+    <ClInclude Include="program\SceneManager.h" />
     <ClInclude Include="program\Title.h" />
   </ItemGroup>
   <ItemGroup>
@@ -154,6 +155,7 @@
     <ClCompile Include="program\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="program\SceneManager.cpp" />
     <ClCompile Include="program\TItle.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
