@@ -1,0 +1,9 @@
+# Visual Studio 自動生成フォルダ・ファイル
+.vs/
+x64/
+Debug/
+Release/
+*.user
+*.suo
+*.opensdf
+*.sdf
