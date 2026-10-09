@@ -1,5 +1,5 @@
 #include "SceneManager.h"
-#include"BaceScene.h"
+#include"BaseScene.h"
 
 SceneManager::SceneManager()
 	:m_currentScene(nullptr),m_nextScene(nullptr){}

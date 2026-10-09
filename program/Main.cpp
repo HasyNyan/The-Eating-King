@@ -1,6 +1,7 @@
 #include "Main.h"
 #include "SceneManager.h"
 #include "Game.h"
+#include "TitleScene.h"
 
 char KeyBuffer[256];
 int KeyFrame[256];

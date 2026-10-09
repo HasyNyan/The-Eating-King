@@ -1,13 +1,13 @@
 #pragma once
 
 //前方宣言
-class BaceScene;
+class BaseScene;
 
 class SceneManager
 {
 private:
-	std::unique_ptr<BaceScene>m_currentScene;//現在実行中のシーン
-	std::unique_ptr<BaceScene>m_nextScene;	 //次のフレームで切り替えるシーン
+	std::unique_ptr<BaseScene>m_currentScene;//現在実行中のシーン
+	std::unique_ptr<BaseScene>m_nextScene;	 //次のフレームで切り替えるシーン
 public:
 	SceneManager();
 	~SceneManager();
@@ -15,6 +15,7 @@ public:
 	void Update();
 	void Draw();
 
+	//シーン遷移テンプレート関数
 	template<typename T,typename...Args>
 	void ChangeScene(Args&&... args)
 	{
