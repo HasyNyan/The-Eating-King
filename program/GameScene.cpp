@@ -1,5 +1,5 @@
 #include "GameScene.h"
-#include "TitleScene.h"
+#include"ResultScene.h"
 #include "SceneManager.h"
 
 void GameScene::Initialize()
@@ -23,7 +23,7 @@ void GameScene::Update()
 	//ENTERキーを押したらタイトル画面に戻る
 	if (PushHitKey(KEY_INPUT_RETURN))
 	{
-		m_sceneManager.ChangeScene<TitleScene>();
+		m_sceneManager.ChangeScene<ResultScene>(m_score);
 	}
 }
 
