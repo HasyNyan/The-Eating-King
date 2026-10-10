@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="program\BaseObject.h" />
     <ClInclude Include="program\BaseScene.h" />
     <ClInclude Include="program\Camera.h" />
     <ClInclude Include="program\Game.h" />
