@@ -143,18 +143,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="program\BaseScene.h" />
+    <ClInclude Include="program\Camera.h" />
     <ClInclude Include="program\Game.h" />
+    <ClInclude Include="program\GameScene.h" />
     <ClInclude Include="program\Main.h" />
     <ClInclude Include="program\pch.h" />
+    <ClInclude Include="program\ResultScene.h" />
+    <ClInclude Include="program\SceneManager.h" />
     <ClInclude Include="program\Title.h" />
+    <ClInclude Include="program\TitleScene.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="program\BaseScene.cpp" />
+    <ClCompile Include="program\Camera.cpp" />
     <ClCompile Include="program\Game.cpp" />
+    <ClCompile Include="program\GameScene.cpp" />
     <ClCompile Include="program\Main.cpp" />
     <ClCompile Include="program\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="program\ResultScene.cpp" />
+    <ClCompile Include="program\SceneManager.cpp" />
     <ClCompile Include="program\TItle.cpp" />
+    <ClCompile Include="program\TitleScene.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
