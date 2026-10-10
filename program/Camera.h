@@ -13,6 +13,12 @@ public:
 	Camera();
 	~Camera() = default;
 
+	void Initialize(VECTOR position, VECTOR target);
+	void Update();
+	void SetToDxLib();
 
-	
+	void SetPosition(VECTOR pos)	{ m_position = pos; }
+	void SetTarget(VECTOR target)   { m_target = target; }
+	VECTOR GetPosition() const { return m_position; }
+	VECTOR GetTarget() const { return m_target; }
 };
