@@ -5,6 +5,7 @@
 #include <memory>
 #include <time.h>
 #include <math.h>
+#include<vector>
 
 // Windows & Direct3D & DxLi
 #include <windows.h>
@@ -14,3 +15,6 @@
 //プロジェクト共有の便利関数・定数
 #include "Main.h"
 #include "Game.h"
+
+//基底クラス
+#include"BaseObject.h"

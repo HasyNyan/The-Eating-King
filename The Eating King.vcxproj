@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClInclude Include="program\BaseObject.h" />
     <ClInclude Include="program\BaseScene.h" />
+    <ClInclude Include="program\Burger.h" />
     <ClInclude Include="program\Camera.h" />
     <ClInclude Include="program\Game.h" />
     <ClInclude Include="program\GameScene.h" />
@@ -157,6 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="program\BaseScene.cpp" />
+    <ClCompile Include="program\Burger.cpp" />
     <ClCompile Include="program\Camera.cpp" />
     <ClCompile Include="program\Game.cpp" />
     <ClCompile Include="program\GameScene.cpp" />
