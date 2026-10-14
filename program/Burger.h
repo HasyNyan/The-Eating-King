@@ -32,9 +32,6 @@ public:
 	void Update()	  override;
 	void Draw()		  override;
 
-	//特定の座標のボクセルを消す(かみちぎり用関数)
-	bool RemoveVoxel(int x, int y, int z);
-
-	//ボクセルデータが存在するか確認
-	bool IsVoxelActive(int x, int y, int z)const;
+	//噛みちぎり処理
+	bool Bite(int targetX, int targetY, int targetZ, int radius);
 };
