@@ -122,4 +122,17 @@ bool Burger::Bite(int targetX, int targetY, int targetZ, int radius)
 			}
 		}
 	}
+	return ateSomething;
+}
+
+unsigned int  Burger::GetVoxelColor(VoxelType type)const
+{
+	switch(type)
+	{
+	case VoxelType::Bun:	  return GetColor(210, 140,  70);
+	case VoxelType::Patty:	  return GetColor( 90,  45,  20);
+	case VoxelType::Cheese:	  return GetColor(255, 210,   0);
+	case VoxelType::Lettuce:  return GetColor( 40, 180,  40);
+	default:				  return GetColor(255, 255, 255);
+	}
 }
