@@ -19,7 +19,7 @@ private:
 	int	 m_modelHandle = -1;
 	bool m_isBitten	   = false; //1度でも噛まれたかどうか
 	//3Dグリッド配列
-	VoxelType m_grid [BURGER_SIZE_X] [BURGER_SIZE_Y] [BURGER_SIZE_Z];
+	VoxelType m_grid[BURGER_SIZE_X][BURGER_SIZE_Y][BURGER_SIZE_Z]{};
 	//1ボクセルのサイズ
 	float m_voxelSize = 0.5f;
 	//各ボクセルの種類に応じた描画色を取得するヘルパー関数

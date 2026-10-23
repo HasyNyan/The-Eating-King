@@ -4,8 +4,9 @@
 //C++•W€ƒ‰ƒCƒuƒ‰ƒŠ
 #include <memory>
 #include <time.h>
+#include <cmath>
 #include <math.h>
-#include<vector>
+#include <vector>
 
 // Windows & Direct3D & DxLi
 #include <windows.h>

@@ -1,5 +1,21 @@
 #include "Burger.h"
 
+Burger::Burger()
+	:m_modelHandle(-1)
+	, m_isBitten(false)
+	, m_voxelSize(0.5f)
+{
+	// 配列のゼロクリア
+	for (int x = 0; x < BURGER_SIZE_X; ++x) {
+		for (int y = 0; y < BURGER_SIZE_Y; ++y) {
+			for (int z = 0; z < BURGER_SIZE_Z; ++z) {
+				m_grid[x][y][z] = VoxelType::None;
+			}
+		}
+	}
+}
+
+
 Burger::~Burger()
 {
 	//読み込んだ3Dモデルのメモリ解放
@@ -16,6 +32,11 @@ void Burger::Initialize()
 	m_isBitten = false;
 	//3Dモデルファイルの読み込み
 	m_modelHandle = MV1LoadModel("Assets/Models/hamburger/hambuger.mv1");
+	//モデルのサイズを調整
+	if (m_modelHandle != -1)
+	{
+		MV1SetScale(m_modelHandle, VGet(1.0f, 1.0f, 1.0f));
+	}
 
 	//内部のボクセルデータ敷き詰め
 	for (int x = 0; x < BURGER_SIZE_X; ++x)
