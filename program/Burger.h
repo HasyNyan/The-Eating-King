@@ -25,8 +25,8 @@ private:
 	//各ボクセルの種類に応じた描画色を取得するヘルパー関数
 	unsigned int GetVoxelColor(VoxelType type)const;
 public:
-	Burger() = default;
-	~Burger() override = default;
+	Burger();
+	~Burger() override;
 
 	void Initialize() override;
 	void Update()	  override;
