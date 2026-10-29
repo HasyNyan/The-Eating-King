@@ -1,10 +1,12 @@
 #pragma once
 #include "BaseScene.h"
 #include "Camera.h"
+#include"Burger.h"
 class GameScene : public BaseScene {
 private:
     int m_score = 0; // テスト用スコア変数
     std::unique_ptr<Camera>m_camera;//カメラオブジェクトの保持
+    std::unique_ptr<Burger>m_burger;//バーガーオブジェクトの保持
 
 public:
     using BaseScene::BaseScene;
