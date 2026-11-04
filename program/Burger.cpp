@@ -35,7 +35,7 @@ void Burger::Initialize()
 	//モデルのサイズを調整
 	if (m_modelHandle != -1)
 	{
-		MV1SetScale(m_modelHandle, VGet(1.0f, 1.0f, 1.0f));
+		MV1SetScale(m_modelHandle, VGet(0.1f, 0.1f, 0.1f));
 	}
 
 	//内部のボクセルデータ敷き詰め
@@ -68,6 +68,24 @@ void Burger::Update()
 	{
 		MV1SetPosition(m_modelHandle, m_position);
 	}
+
+	int mouseX, mouseY;
+	GetMousePoint(&mouseX, &mouseY);
+
+	//マウス左クリックをされている間にドラッグで回転
+	if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0)
+	{
+		int diffX = mouseX - m_prevMouseX;
+		int diffY = mouseY - m_prevMouseY;
+
+		//移動量に応じて回転角を加算
+		m_rotation.y += diffX * 0.005f;//左右ドラッグでY軸回転
+		m_rotation.x += diffY * 0.005f;//上下ドラッグでX軸回転
+	}
+	//現在のマウス位置を保存
+	m_prevMouseX = mouseX;
+	m_prevMouseY = mouseY;
+
 }
 
 void Burger::Draw()
@@ -76,13 +94,24 @@ void Burger::Draw()
 	//噛まれる前:きれいな3Dモデルを描画
 	if (!m_isBitten && m_modelHandle != -1)
 	{
+		// 座標設定
+		MV1SetPosition(m_modelHandle, m_position);
+		//モデルの回転を設定
+		MV1SetRotationXYZ(m_modelHandle, m_rotation);
+
 		MV1DrawModel(m_modelHandle);
 		return;
 	}
+
 	//噛まれた後、敷き詰められた内包ボクセル群を描画
 	float offsetX = (BURGER_SIZE_X * m_voxelSize) / 2.0f;
 	float offsetY = (BURGER_SIZE_Y * m_voxelSize) / 2.0f;
 	float offsetZ = (BURGER_SIZE_Z * m_voxelSize) / 2.0f;
+
+	//回転行列を作成
+	MATRIX rotMat = MGetRotX(m_rotation.x);
+	rotMat = MMult(rotMat, MGetRotY(m_rotation.y));
+
 
 	for (int x = 0; x < BURGER_SIZE_X; ++x)
 	{
@@ -93,18 +122,21 @@ void Burger::Draw()
 				VoxelType type = m_grid[x][y][z];
 				if(type == VoxelType::None) continue;
 
-				VECTOR minPos = VGet(
-					m_position.x + (x * m_voxelSize) - offsetX,
-					m_position.y + (y * m_voxelSize) - offsetY,
-					m_position.z + (z * m_voxelSize) - offsetZ
-					);
-
-				VECTOR maxPos = VGet(
-					minPos.x + m_voxelSize,
-					minPos.y + m_voxelSize,
-					minPos.z + m_voxelSize
+				//ローカル空間でのボクセル中心座標
+				VECTOR localPos = VGet(
+					(x * m_voxelSize) - offsetX,
+					(y * m_voxelSize) - offsetY,
+					(z * m_voxelSize) - offsetZ
 				);
+				//回転行列を適用してワールド座標へ移動
+				VECTOR rotatedPos = VTransform(localPos, rotMat);
+				VECTOR finalPos = VAdd(m_position, rotatedPos);
 
+				//ボクセルの対角最小・最大点
+				float halfSize = m_voxelSize / 2.0f;
+				VECTOR minPos = VGet(finalPos.x - halfSize, finalPos.y - halfSize, finalPos.z - halfSize);
+				VECTOR maxPos = VGet(finalPos.x + halfSize, finalPos.y + halfSize, finalPos.z + halfSize);
+		
 				unsigned int color = GetVoxelColor(type);
 				DrawCube3D(minPos, maxPos, color, GetColor(40, 40, 40), TRUE);
 			}
