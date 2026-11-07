@@ -7,6 +7,7 @@
 #include <cmath>
 #include <math.h>
 #include <vector>
+#include <string>
 
 // Windows & Direct3D & DxLi
 #include <windows.h>

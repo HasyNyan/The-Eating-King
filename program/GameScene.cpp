@@ -8,11 +8,25 @@ void GameScene::Initialize()
 
 	//カメラの生成と初期化
 	m_camera = std::make_unique<Camera>();
-	m_camera->Initialize(VGet(0.0f, 15.0f, -25.0f), VGet(0.0f, 0.0f, 0.0f));
+	m_camera->Initialize(VGet(0.0f, 18.0f, -30.0f), VGet(0.0f, 0.0f, 0.0f));
 
 	//ハンバーガー生成
 	m_burger = std::make_unique<Burger>();
 	m_burger -> Initialize();
+
+	//ライバルAIを2体生成
+	m_competitors.clear();
+
+	//CPU1
+	auto cpu1 = std::make_unique<BurgerCompetitor>();
+	cpu1->Initialize("CPU-1(John)", VGet(-12.0f, 0.0f, 0.0f), 0.35f);
+	m_competitors.push_back(std::move(cpu1));
+
+	//CPU2
+	auto cpu2 = std::make_unique<BurgerCompetitor>();
+	cpu2->Initialize("CPU-1(Mike)", VGet(12.0f, 0.0f, 0.0f), 0.50f);
+	m_competitors.push_back(std::move(cpu2));
+
 }
 
 void GameScene::Finalize()
