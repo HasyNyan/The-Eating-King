@@ -27,10 +27,7 @@ void GameScene::Update()
 	//Zキーを押したら食べたことにしてスコア加算
 	if (PushHitKey(KEY_INPUT_Z))
 	{
-		if (m_burger->Bite(6, 4, 1, 3))
-		{
-			m_score += 100;
-		}
+		TryBiteBurgerByRay();
 	}
 
 	//ENTERキーを押したらタイトル画面に戻る
@@ -50,13 +47,26 @@ void GameScene::Draw()
 	//バーガーモデルの描画
 	if (m_burger)m_burger->Draw();
 
-	//テスト用のボックス
-	//DrawCube3D(VGet(-2.0f, -2.0f, -2.0f), VGet(2.0f, 2.0f, 2.0f),GetColor(255,100,100),GetColor(200,50,50),TRUE);
-
-
 	DrawString(200, 100, "----- GAME SCENE -----", COLOR_AQUA);
 	DrawFormatString(200, 160, COLOR_WHITE, "Burger Score: %d", m_score);
 
 	DrawString(200, 240, "[Z] Key : Eat Burger (+100)", COLOR_WHITE);
 	DrawString(200, 280, "[ENTER] Key : Back to Title", COLOR_WHITE);
+}
+
+void GameScene::TryBiteBurgerByRay()
+{
+	if (!m_camera || !m_burger)return;
+
+	//カメラ位置から注視点へのレイ(方向)を算出
+	VECTOR camPos = m_camera->GetPosition();
+	VECTOR camTarget = m_camera->GetTarget();
+	VECTOR rayDir = VSub(camTarget, camPos);//カメラから注視点への方向
+
+	//半径2の範囲でレイ噛みを実施
+	int erasedCount = m_burger->BiteByRay(camPos, rayDir, 4);
+	if (erasedCount > 0)
+	{
+		m_score += erasedCount * 10;//削れたボクセル数に応じたスコア加算
+	}
 }

@@ -50,10 +50,10 @@ void Burger::Initialize()
 
 			for (int y = 0; y < BURGER_SIZE_Y; ++y)
 			{
-				if (y <= 1)			m_grid[x][y][z] = VoxelType::Bun;		//下バンズ
-				else if (y <= 3)	m_grid[x][y][z] = VoxelType::Patty;		//パティ
-				else if (y == 4)	m_grid[x][y][z] = VoxelType::Cheese;	//チーズ
-				else if (y == 5)	m_grid[x][y][z] = VoxelType::Lettuce;	//レタス
+				if (y <= 3)			m_grid[x][y][z] = VoxelType::Bun;		//下バンズ
+				else if (y <= 8)	m_grid[x][y][z] = VoxelType::Patty;		//パティ
+				else if (y == 10)	m_grid[x][y][z] = VoxelType::Cheese;	//チーズ
+				else if (y == 12)	m_grid[x][y][z] = VoxelType::Lettuce;	//レタス
 				else 				m_grid[x][y][z] = VoxelType::Bun;		//上バンズ
 				
 			}
@@ -112,6 +112,8 @@ void Burger::Draw()
 	MATRIX rotMat = MGetRotX(m_rotation.x);
 	rotMat = MMult(rotMat, MGetRotY(m_rotation.y));
 
+	//ボクセル描画用の設定
+	SetUseBackCulling(FALSE);     // 両面描画にして裏返ったポリゴンの消滅を防ぐ
 
 	for (int x = 0; x < BURGER_SIZE_X; ++x)
 	{
@@ -177,6 +179,52 @@ bool Burger::Bite(int targetX, int targetY, int targetZ, int radius)
 	}
 	return ateSomething;
 }
+
+int Burger::BiteByRay(VECTOR rayOrigin, VECTOR rayDir, int radius)
+{
+	//レイの方向ベクトルを正規化
+	VECTOR normDir = VNorm(rayDir);
+
+	//ワールド空間からハンバーガーのローカル空間への逆変換行列を作成
+	MATRIX invRotMat = MGetRotY(-m_rotation.y);
+	invRotMat = MMult(invRotMat, MGetRotX(-m_rotation.x));
+
+	//レイの始点と方向をバーガーのローカル回転座標系へ変換
+	VECTOR localRayOrigin = VSub(rayOrigin, m_position);
+	localRayOrigin	= VTransform(localRayOrigin, invRotMat);
+	VECTOR localRayDir = VTransform(normDir, invRotMat);
+
+	float offsetX = (BURGER_SIZE_X * m_voxelSize) / 2.0f;
+	float offsetY = (BURGER_SIZE_Y * m_voxelSize) / 2.0f;
+	float offsetZ = (BURGER_SIZE_Z * m_voxelSize) / 2.0f;
+
+	//レイをステップ進行させてヒット判定
+	float stepSize = 0.2f;
+	for (float step = 0.0f; step < 50.0f; step += stepSize)
+	{
+		VECTOR currentPos = VAdd(localRayOrigin, VScale(localRayDir, step));
+
+		//ローカル空間の座標から配列インデックスに変換
+		int gridX = static_cast<int>(std::floor((currentPos.x + offsetX) / m_voxelSize));
+		int gridY = static_cast<int>(std::floor((currentPos.y + offsetY) / m_voxelSize));
+		int gridZ = static_cast<int>(std::floor((currentPos.z + offsetZ) / m_voxelSize));
+
+		//範囲内かつボクセルが存在すればヒット
+		if (gridX >= 0 && gridX < BURGER_SIZE_X &&
+			gridY >= 0 && gridY < BURGER_SIZE_Y &&
+			gridZ >= 0 && gridZ < BURGER_SIZE_Z)
+		{
+			if (m_grid[gridX][gridY][gridZ] != VoxelType::None)
+			{
+				//ヒットした位置を中心に噛みちぎる
+				return Bite(gridX, gridY, gridZ, radius);
+			}
+		}
+	}
+	return 0;//何もヒットしなかった
+}
+
+
 
 unsigned int  Burger::GetVoxelColor(VoxelType type)const
 {
