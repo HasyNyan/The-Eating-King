@@ -8,6 +8,9 @@ private:
     std::unique_ptr<Camera>m_camera;//カメラオブジェクトの保持
     std::unique_ptr<Burger>m_burger;//バーガーオブジェクトの保持
 
+    //Zキー押下時のレイキャスト噛み処理
+    void TryBiteBurgerByRay();
+
 public:
     using BaseScene::BaseScene;
 
