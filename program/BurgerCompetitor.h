@@ -18,11 +18,13 @@ private:
 
 public:
 	BurgerCompetitor() = default;
-	~BurgerCompetitor() = default;
-
-	void Initialize(const std::string& name, VECTOR position, float biteSpeed);
+	~BurgerCompetitor() override;
+	void Initialize() override;
 	void Update()override;
 	void Draw()override;
+
+	//ライバルAI固有の設定を行う関数
+	void Setup(const std::string& name, VECTOR position, float biteInterval);
 
 	bool IsFinished() const { return m_progress >= 1.0f;}
 	float GetProgress() const { return m_progress; }

@@ -19,12 +19,14 @@ void GameScene::Initialize()
 
 	//CPU1
 	auto cpu1 = std::make_unique<BurgerCompetitor>();
-	cpu1->Initialize("CPU-1(John)", VGet(-12.0f, 0.0f, 0.0f), 0.35f);
+	cpu1->Initialize();//基底クラスの初期化
+	cpu1->Setup("CPU-1(John)", VGet(-12.0f, 0.0f, 0.0f), 0.35f);
 	m_competitors.push_back(std::move(cpu1));
 
 	//CPU2
 	auto cpu2 = std::make_unique<BurgerCompetitor>();
-	cpu2->Initialize("CPU-1(Mike)", VGet(12.0f, 0.0f, 0.0f), 0.50f);
+	cpu2->Initialize();//基底クラスの初期化
+	cpu2->Setup("CPU-2(Mike)", VGet(12.0f, 0.0f, 0.0f), 0.50f);
 	m_competitors.push_back(std::move(cpu2));
 
 }
@@ -38,6 +40,11 @@ void GameScene::Update()
 {
 	if (m_camera)m_camera->Update();
 	if (m_burger)m_burger->Update();
+	//ライバルAIの更新
+	for (auto& competitor : m_competitors)
+	{
+		if (competitor)competitor->Update();
+	}
 	//Zキーを押したら食べたことにしてスコア加算
 	if (PushHitKey(KEY_INPUT_Z))
 	{
@@ -60,9 +67,29 @@ void GameScene::Draw()
 	}
 	//バーガーモデルの描画
 	if (m_burger)m_burger->Draw();
+	//ライバルAIの更新
+	for(auto& competitor : m_competitors)
+	{
+		if (competitor)competitor->Draw();
+	}
 
+	//UI表示
 	DrawString(200, 100, "----- GAME SCENE -----", COLOR_AQUA);
 	DrawFormatString(200, 160, COLOR_WHITE, "Burger Score: %d", m_score);
+
+	int yOffset = 80;
+	for (const auto& competitor : m_competitors)
+	{
+		if (competitor)
+		{
+			DrawFormatString(20, yOffset, COLOR_YELLOW, "%s : %.0f%% (Score: %d)",
+				competitor->GetName().c_str(),
+				competitor->GetProgress() * 100.0f,
+				competitor->GetScore()
+			);
+			yOffset += 25;
+		}
+	}
 
 	DrawString(200, 240, "[Z] Key : Eat Burger (+100)", COLOR_WHITE);
 	DrawString(200, 280, "[ENTER] Key : Back to Title", COLOR_WHITE);

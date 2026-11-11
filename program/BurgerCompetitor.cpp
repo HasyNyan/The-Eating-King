@@ -9,16 +9,21 @@ BurgerCompetitor::~BurgerCompetitor()
 	}
 }
 
-void BurgerCompetitor::Initialize(const std::string& name, VECTOR position, float biteInterval)
+void BurgerCompetitor::Initialize()
+{
+	m_progress = 0.0f;
+	m_score = 0;
+	m_biteTimer = 0.0f;
+	m_position = VGet(0.0f, 0.0f, 0.0f);
+}
+
+void BurgerCompetitor::Setup(const std::string& name, VECTOR position, float biteInterval)
 {
 	m_name = name;
 	m_position = position;
 	m_biteInterval = biteInterval;
-	m_progress = 0.0f;
-	m_score = 0;
-	m_biteTimer = 0.0f;
 
-	//3DÉÇÉfÉãì«Ç›çûÇ›
+	// 3DÉÇÉfÉãì«Ç›çûÇ›
 	m_modelHandle = MV1LoadModel("Assets/Models/hamburger/hambuger.mv1");
 	if (m_modelHandle != -1)
 	{
