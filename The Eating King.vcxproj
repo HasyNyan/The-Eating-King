@@ -150,6 +150,7 @@
     <ClInclude Include="program\Camera.h" />
     <ClInclude Include="program\Game.h" />
     <ClInclude Include="program\GameScene.h" />
+    <ClInclude Include="program\GameTimer.h" />
     <ClInclude Include="program\Main.h" />
     <ClInclude Include="program\pch.h" />
     <ClInclude Include="program\ResultScene.h" />
@@ -164,6 +165,7 @@
     <ClCompile Include="program\Camera.cpp" />
     <ClCompile Include="program\Game.cpp" />
     <ClCompile Include="program\GameScene.cpp" />
+    <ClCompile Include="program\GameTimer.cpp" />
     <ClCompile Include="program\Main.cpp" />
     <ClCompile Include="program\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
