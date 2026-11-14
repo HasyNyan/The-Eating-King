@@ -45,38 +45,88 @@ void GameScene::Finalize()
 
 void GameScene::Update()
 {
-	//現在のシステム時間を取得し、前フレームとの差分を秒単位に変換
-	LONGLONG currentTime = GetNowHiPerformanceCount();
-	float deltaTime = static_cast<float>(currentTime - m_prevTime) / 1000000.0f;
-	m_prevTime = currentTime;
-	//処理落ち・フリーズ対策
-	if (deltaTime > 0.1f)
-	{
-		deltaTime = 0.1f;
-	}
+	//実経過時間の算出
+	float deltaTime = CalculateDeltaTime();
 	//タイマー更新
 	if (UpdateTimer(deltaTime))return;
 
 	if (m_camera)m_camera->Update();
 	if (m_burger)m_burger->Update();
-	//ライバルAIの更新
+	UpdateCompetitors(deltaTime);
+
+	//プレイヤーの入出力
+	HandleInput();
+}
+
+float GameScene::CalculateDeltaTime()
+{
+	//現在のシステム時間を取得し、前フレームとの差分を秒単位に変換
+	LONGLONG currentTime = GetNowHiPerformanceCount();
+	float deltaTime = static_cast<float>(currentTime - m_prevTime) / 1000000.0f;
+	m_prevTime = currentTime;
+	//処理落ち・フリーズ対策
+	if (deltaTime > 0.1f)deltaTime = 0.1f;
+	return deltaTime;
+}
+
+bool GameScene::UpdateTimer(float deltaTime)
+{
+	if (!m_gameTimer)return false;
+	m_gameTimer->Update(deltaTime);
+	if (m_gameTimer->IsTimeUp())
+	{
+		m_sceneManager.ChangeScene<ResultScene>(m_score);
+		return true;
+	}
+	return false;
+}
+
+void GameScene::UpdateCompetitors(float deltaTime)
+{
 	for (auto& competitor : m_competitors)
 	{
-		if (competitor)competitor->Update();
+		if (competitor)
+		{
+			competitor->SetDeltaTime(deltaTime);
+			competitor->Update();
+		}
 	}
-	//Zキーを押したら食べたことにしてスコア加算
+}
+
+void GameScene::HandleInput()
+{
 	if (PushHitKey(KEY_INPUT_Z))
 	{
 		TryBiteBurgerByRay();
 	}
-
-	//ENTERキーを押したらタイトル画面に戻る
 	if (PushHitKey(KEY_INPUT_RETURN))
 	{
 		m_sceneManager.ChangeScene<ResultScene>(m_score);
 	}
 }
 
+void GameScene::TryBiteBurgerByRay()
+{
+	if (!m_camera || !m_burger)return;
+
+	//カメラ位置から注視点へのレイ(方向)を算出
+	VECTOR camPos = m_camera->GetPosition();
+	VECTOR camTarget = m_camera->GetTarget();
+	VECTOR rayDir = VSub(camTarget, camPos);//カメラから注視点への方向
+
+	//半径2の範囲でレイ噛みを実施
+	int erasedCount = m_burger->BiteByRay(camPos, rayDir, 4);
+	if (erasedCount > 0)
+	{
+		m_score += erasedCount * 10;//削れたボクセル数に応じたスコア加算
+		if (m_burger->IsEmpty())
+		{
+			m_playerEatenCount++;
+			m_score += 500;
+			m_burger->Reset();
+		}
+	}
+}
 void GameScene::Draw()
 {
 	//カメラの設定を適用
@@ -95,15 +145,16 @@ void GameScene::Draw()
 	//UI表示
 	DrawString(20, 20, "----- EATING CONTEST -----", COLOR_AQUA);
 	DrawTimerUI();
-	DrawFormatString(20, 130, COLOR_WHITE, "Player Score: %d", m_score);
+	DrawFormatString(20, 80, COLOR_WHITE, "Player : %d Burgers (Score: %d)", m_playerEatenCount,m_score);
 
-	int yOffset = 80;
+	int yOffset = 110;
 	for (const auto& competitor : m_competitors)
 	{
 		if (competitor)
 		{
 			DrawFormatString(20, yOffset, COLOR_YELLOW, "%s : %.0f%% (Score: %d)",
 				competitor->GetName().c_str(),
+				competitor->GetEatenCount(),
 				competitor->GetProgress() * 100.0f,
 				competitor->GetScore()
 			);
@@ -111,42 +162,13 @@ void GameScene::Draw()
 		}
 	}
 
-	DrawString(200, 240, "[Z] Key : Eat Burger (+100)", COLOR_WHITE);
-	DrawString(200, 280, "[ENTER] Key : Back to Title", COLOR_WHITE);
-}
-
-bool GameScene::UpdateTimer(float deltaTime)
-{
-	if (!m_gameTimer)return false;
-
-	m_gameTimer->Update(deltaTime);
-
-	if (m_gameTimer->IsTimeUp())
-	{
-		m_sceneManager.ChangeScene<ResultScene>(m_score);
-		return true;
-	}
-	return false;
+	DrawString(20, yOffset + 20, "[Z] Key : Bite Burger", COLOR_WHITE);
+	DrawString(20, yOffset + 40, "Left Drag : Rotate Burger", COLOR_WHITE);
+	DrawString(20, yOffset + 60, "[ENTER] Key : Finish", COLOR_YELLOW);
 }
 
 void GameScene::DrawTimerUI() const
 {
 	if (!m_gameTimer)return;
 	DrawFormatString(20, 50, COLOR_YELLOW, "TIME LEFT : %2d sec", m_gameTimer->GetRemainingSeconds());
-}
-void GameScene::TryBiteBurgerByRay()
-{
-	if (!m_camera || !m_burger)return;
-
-	//カメラ位置から注視点へのレイ(方向)を算出
-	VECTOR camPos = m_camera->GetPosition();
-	VECTOR camTarget = m_camera->GetTarget();
-	VECTOR rayDir = VSub(camTarget, camPos);//カメラから注視点への方向
-
-	//半径2の範囲でレイ噛みを実施
-	int erasedCount = m_burger->BiteByRay(camPos, rayDir, 4);
-	if (erasedCount > 0)
-	{
-		m_score += erasedCount * 10;//削れたボクセル数に応じたスコア加算
-	}
 }

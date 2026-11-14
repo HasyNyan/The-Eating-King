@@ -18,6 +18,7 @@ class Burger :public BaseObject
 private:
 	int	 m_modelHandle = -1;
 	bool m_isBitten	   = false; //1度でも噛まれたかどうか
+	int m_initialVoxelCount = 0;//初期状態の総ボクセル数
 	//3Dグリッド配列
 	VoxelType m_grid[BURGER_SIZE_X][BURGER_SIZE_Y][BURGER_SIZE_Z]{};
 	//1ボクセルのサイズ
@@ -31,18 +32,24 @@ private:
 	//各ボクセルの種類に応じた描画色を取得するヘルパー関数
 	unsigned int GetVoxelColor(VoxelType type)const;
 public:
-	Burger();
+	Burger() = default;
 	~Burger() override;
 
 	void Initialize() override;
 	void Update()	  override;
 	void Draw()		  override;
 
+	int GetInitialVoxelCount()const { return m_initialVoxelCount; }
+
+	//おかわり用:3Dモデルを再ロードせず、ボクセルと状態だけを初期化する
+	void Reset();
+
+	//すべてのボクセルが空になったか判定
+	bool IsEmpty() const;
+
 	//噛みちぎり処理
-	bool Bite(int targetX, int targetY, int targetZ, int radius);
+	int Bite(int targetX, int targetY, int targetZ, int radius);
 
 	//レイ(光線)を飛ばしてヒットした場所を噛む
 	int BiteByRay(VECTOR rayOrigin, VECTOR rayDir, int radius);
-
-	void SetRotation(VECTOR rot) { m_rotation = rot; }
 };
