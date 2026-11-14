@@ -5,6 +5,8 @@
 void GameScene::Initialize()
 {
 	m_score = 0;
+	//現在のシステム時間を取得
+	m_prevTime = GetNowHiPerformanceCount();
 
 	//カメラの生成と初期化
 	m_camera = std::make_unique<Camera>();
@@ -29,6 +31,11 @@ void GameScene::Initialize()
 	cpu2->Setup("CPU-2(Mike)", VGet(12.0f, 0.0f, 0.0f), 0.50f);
 	m_competitors.push_back(std::move(cpu2));
 
+
+	//60秒タイマーを開始
+	m_gameTimer = std::make_unique<GameTimer>();
+	m_gameTimer->Start(60.0f);
+
 }
 
 void GameScene::Finalize()
@@ -38,6 +45,18 @@ void GameScene::Finalize()
 
 void GameScene::Update()
 {
+	//現在のシステム時間を取得し、前フレームとの差分を秒単位に変換
+	LONGLONG currentTime = GetNowHiPerformanceCount();
+	float deltaTime = static_cast<float>(currentTime - m_prevTime) / 1000000.0f;
+	m_prevTime = currentTime;
+	//処理落ち・フリーズ対策
+	if (deltaTime > 0.1f)
+	{
+		deltaTime = 0.1f;
+	}
+	//タイマー更新
+	if (UpdateTimer(deltaTime))return;
+
 	if (m_camera)m_camera->Update();
 	if (m_burger)m_burger->Update();
 	//ライバルAIの更新
@@ -74,8 +93,9 @@ void GameScene::Draw()
 	}
 
 	//UI表示
-	DrawString(200, 100, "----- GAME SCENE -----", COLOR_AQUA);
-	DrawFormatString(200, 160, COLOR_WHITE, "Burger Score: %d", m_score);
+	DrawString(20, 20, "----- EATING CONTEST -----", COLOR_AQUA);
+	DrawTimerUI();
+	DrawFormatString(20, 130, COLOR_WHITE, "Player Score: %d", m_score);
 
 	int yOffset = 80;
 	for (const auto& competitor : m_competitors)
@@ -95,6 +115,25 @@ void GameScene::Draw()
 	DrawString(200, 280, "[ENTER] Key : Back to Title", COLOR_WHITE);
 }
 
+bool GameScene::UpdateTimer(float deltaTime)
+{
+	if (!m_gameTimer)return false;
+
+	m_gameTimer->Update(deltaTime);
+
+	if (m_gameTimer->IsTimeUp())
+	{
+		m_sceneManager.ChangeScene<ResultScene>(m_score);
+		return true;
+	}
+	return false;
+}
+
+void GameScene::DrawTimerUI() const
+{
+	if (!m_gameTimer)return;
+	DrawFormatString(20, 50, COLOR_YELLOW, "TIME LEFT : %2d sec", m_gameTimer->GetRemainingSeconds());
+}
 void GameScene::TryBiteBurgerByRay()
 {
 	if (!m_camera || !m_burger)return;
