@@ -55,14 +55,16 @@ void BurgerCompetitor::UpdateEating()
 	if (m_biteTimer >= m_biteInterval)
 	{
 		m_biteTimer = 0.0f;
-		m_progress += 0.05f;//一口で5%進む
-		m_score += 100;
+		float biteAmount = 0.05f;//一口で5%進む
+		m_progress += biteAmount;
+		//進んだ割合に応じてスコア加算
+		m_score += static_cast<int>(biteAmount * 1000);
 		//1個完食したらカウントを増やして次のバーガーを用意
 		if (m_progress >= 1.0f)
 		{
 			m_eatenCount++;
 			m_progress = 0.0f;
-			m_score += 500;
+			m_score += 200;
 		}
 
 		//食べた進行度に応じてモデルのスケールを小さくしていく演出

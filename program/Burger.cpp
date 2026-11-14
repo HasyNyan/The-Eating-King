@@ -108,6 +108,7 @@ void Burger::Reset()
 {
 	m_isBitten = false;
 	m_rotation = VGet(0.0f, 0.0f, 0.0f);//角度も正面に戻す
+	m_initialVoxelCount = 0;//カウントリセット
 	// 配列のゼロクリア
 	for (int x = 0; x < BURGER_SIZE_X; ++x) {
 		for (int y = 0; y < BURGER_SIZE_Y; ++y) {

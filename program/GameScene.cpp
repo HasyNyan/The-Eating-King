@@ -5,6 +5,7 @@
 void GameScene::Initialize()
 {
 	m_score = 0;
+	m_playerEatenCount = 0;
 	//現在のシステム時間を取得
 	m_prevTime = GetNowHiPerformanceCount();
 
@@ -115,14 +116,21 @@ void GameScene::TryBiteBurgerByRay()
 	VECTOR rayDir = VSub(camTarget, camPos);//カメラから注視点への方向
 
 	//半径2の範囲でレイ噛みを実施
-	int erasedCount = m_burger->BiteByRay(camPos, rayDir, 4);
+	int erasedCount = m_burger->BiteByRay(camPos, rayDir, PLAYER_BITE_RADIUS);
 	if (erasedCount > 0)
 	{
-		m_score += erasedCount * 10;//削れたボクセル数に応じたスコア加算
+		//削れたボクセル数に応じたスコア加算
+		int totalVoxels = m_burger->GetInitialVoxelCount();
+		if (totalVoxels > 0)
+		{
+			float ratio = static_cast<float>(erasedCount) / static_cast<float>(totalVoxels);
+			int gainedScore = static_cast<int>(std::round(ratio * SCORE_PER_BURGER));
+			m_score += (gainedScore > 0) ? gainedScore : 1;//最低1点を保証
+		}
 		if (m_burger->IsEmpty())
 		{
 			m_playerEatenCount++;
-			m_score += 500;
+			m_score += COMPLETE_BONUS;
 			m_burger->Reset();
 		}
 	}
@@ -152,7 +160,7 @@ void GameScene::Draw()
 	{
 		if (competitor)
 		{
-			DrawFormatString(20, yOffset, COLOR_YELLOW, "%s : %.0f%% (Score: %d)",
+			DrawFormatString(20, yOffset, COLOR_YELLOW, "%s :%d Burgers/ %.0f%% (Score: %d)",
 				competitor->GetName().c_str(),
 				competitor->GetEatenCount(),
 				competitor->GetProgress() * 100.0f,
