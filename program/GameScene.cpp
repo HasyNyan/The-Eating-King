@@ -52,7 +52,11 @@ void GameScene::Update()
 	if (UpdateTimer(deltaTime))return;
 
 	if (m_camera)m_camera->Update();
-	if (m_burger)m_burger->Update();
+	if (m_burger)
+	{
+		m_burger->SetDeltaTime(deltaTime);
+		m_burger->Update();
+	}
 	UpdateCompetitors(deltaTime);
 
 	//プレイヤーの入出力
@@ -96,10 +100,25 @@ void GameScene::UpdateCompetitors(float deltaTime)
 
 void GameScene::HandleInput()
 {
-	if (PushHitKey(KEY_INPUT_Z))
+	if (!m_burger)return;
+
+	//テーブルに置かれている時はSPACEキーで掴んで口元へ運ぶ
+	if (m_burger->GetState() == BurgerState::OnTable)
 	{
-		TryBiteBurgerByRay();
+		if (PushHitKey(KEY_INPUT_SPACE))
+		{
+			m_burger->Grab();
+		}
 	}
+	//食事中の時はZキーで噛む
+	else if (m_burger->GetState() == BurgerState::Eating)
+	{
+		if (PushHitKey(KEY_INPUT_Z))
+		{
+			TryBiteBurgerByRay();
+		}
+	}
+	
 	if (PushHitKey(KEY_INPUT_RETURN))
 	{
 		m_sceneManager.ChangeScene<ResultScene>(m_score);
@@ -169,9 +188,20 @@ void GameScene::Draw()
 			yOffset += 25;
 		}
 	}
-
-	DrawString(20, yOffset + 20, "[Z] Key : Bite Burger", COLOR_WHITE);
-	DrawString(20, yOffset + 40, "Left Drag : Rotate Burger", COLOR_WHITE);
+	//状態に応じた操作ガイド表示
+	if (m_burger)
+	{
+		if (m_burger->GetState() == BurgerState::OnTable)
+		{
+			DrawString(20, yOffset + 20, "[SPACE]Key : Grab Burger!", COLOR_AQUA);
+		}
+		else if (m_burger->GetState() == BurgerState::Eating)
+		{
+			DrawString(20, yOffset + 20, "[Z] Key : Bite Burger", COLOR_WHITE); 
+			DrawString(20, yOffset + 40, "Left Drag : Rotate Burger", COLOR_WHITE);
+		}
+	}
+	
 	DrawString(20, yOffset + 60, "[ENTER] Key : Finish", COLOR_YELLOW);
 }
 
