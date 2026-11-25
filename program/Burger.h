@@ -50,7 +50,7 @@ private:
 	float m_currentScale = BASE_MODEL_SCALE;
 
 	VECTOR m_tablePos = VGet(0.0f, -6.0f, -12.0f);//テーブル上の待機位置
-	VECTOR m_mouthPos = VGet(0.0f,  0.0f,   0.0f);//カメラ前の食事位置
+	VECTOR m_mouthPos = VGet(0.0f,  12.0f,   -20.0f);//カメラ前の食事位置
 
 	//各ボクセルの種類に応じた描画色を取得するヘルパー関数
 	unsigned int GetVoxelColor(VoxelType type)const;
