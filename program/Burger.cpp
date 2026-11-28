@@ -73,7 +73,8 @@ void Burger::Reset()
 			}
 		}
 	}
-
+	//残りボクセル数を初期値と同じに設定
+	m_remainingVoxelCount = m_initialVoxelCount;
 }
 
 void Burger::Grab()
@@ -228,17 +229,7 @@ void Burger::Draw()
 
 bool Burger::IsEmpty()const
 {
-	for (int x = 0; x < BURGER_SIZE_X; ++x) {
-		for (int y = 0; y < BURGER_SIZE_Y; ++y) {
-			for (int z = 0; z < BURGER_SIZE_Z; ++z) {
-				if (m_grid[x][y][z] != VoxelType::None)
-				{
-					return false; //1つでも残っていれば未完食
-				}
-			}
-		}
-	}
-	return true;
+	return m_remainingVoxelCount <= 0;
 }
 
 
@@ -273,6 +264,10 @@ int Burger::Bite(int targetX, int targetY, int targetZ, int radius)
 			}
 		}
 	}
+	//残りボクセル数を減算
+	m_remainingVoxelCount -= erasedCount;
+	if (m_remainingVoxelCount < 0)m_remainingVoxelCount = 0;
+
 	return erasedCount;
 }
 
@@ -280,6 +275,16 @@ int Burger::BiteByRay(VECTOR rayOrigin, VECTOR rayDir, int radius)
 {
 	//食事状態以外なら抜け出す
 	if (m_state != BurgerState::Eating)return 0;
+
+	//残量が最低値以下なら、残りすべてを一気に完食
+	if (m_initialVoxelCount > 0)
+	{
+		float remainingRatio = static_cast<float>(m_remainingVoxelCount) / static_cast<float>(m_initialVoxelCount);
+		if (remainingRatio <= LAST_BITE_THRESHOLD)
+		{
+			return ConsumeAllRemaining();
+		}
+	}
 
 	//レイの方向ベクトルを正規化
 	VECTOR normDir = VNorm(rayDir);
@@ -309,21 +314,73 @@ int Burger::BiteByRay(VECTOR rayOrigin, VECTOR rayDir, int radius)
 		int gridZ = static_cast<int>(std::floor((currentPos.z + offsetZ) / m_voxelSize));
 
 		//範囲内かつボクセルが存在すればヒット
-		if (gridX >= 0 && gridX < BURGER_SIZE_X &&
-			gridY >= 0 && gridY < BURGER_SIZE_Y &&
-			gridZ >= 0 && gridZ < BURGER_SIZE_Z)
+		int hitX = 0, hitY = 0, hitZ = 0;
+		if (FindNearestVoxel(gridX,gridY,gridZ,RAY_SEARCH_RADIUS,hitX,hitY,hitZ))
 		{
-			if (m_grid[gridX][gridY][gridZ] != VoxelType::None)
-			{
-				//ヒットした位置を中心に噛みちぎる
-				return Bite(gridX, gridY, gridZ, radius);
-			}
+			//ヒットした位置を中心に噛みちぎる
+			return Bite(hitX, hitY, hitZ, radius);
 		}
 	}
 	return 0;//何もヒットしなかった
 }
 
+bool Burger::FindNearestVoxel(int centerX, int centerY, int centerZ, int searchRadius, int& outX, int& outY, int& outZ)const
+{
+	int minDistSq = searchRadius * searchRadius + 1;
+	bool found = false;
 
+	for (int x = centerX - searchRadius; x <= centerX + searchRadius; ++x)
+	{
+		for (int y = centerY - searchRadius; y <= centerY + searchRadius; ++y)
+		{
+			for (int z = centerZ - searchRadius; z <= centerZ + searchRadius; ++z)
+			{
+				if (x < 0 || x >= BURGER_SIZE_X ||
+					y < 0 || y >= BURGER_SIZE_Y ||
+					z < 0 || z >= BURGER_SIZE_Z)continue;
+
+				if (m_grid[x][y][z] != VoxelType::None)
+				{
+					int dx = x - centerX;
+					int dy = y - centerY;
+					int dz = z - centerZ;
+					int distSq = dx * dx + dy * dy + dz * dz;
+
+					if (distSq < minDistSq)
+					{
+						minDistSq = distSq;
+						outX = x;
+						outY = y;
+						outZ = z;
+						found = true;
+					}
+				}
+
+			}
+		}
+	}
+	return found;
+}
+
+int Burger::ConsumeAllRemaining()
+{
+	m_isBitten = true;
+	int erasedCount = m_remainingVoxelCount;
+
+	for (int x = 0; x < BURGER_SIZE_X; ++x)
+	{
+		for (int y = 0; y < BURGER_SIZE_Y; ++y)
+		{
+			for (int z = 0; z < BURGER_SIZE_Z; ++z)
+			{
+				m_grid[x][y][z] = VoxelType::None;
+			}
+		}
+	}
+
+	m_remainingVoxelCount = 0;
+	return erasedCount;
+}
 
 unsigned int  Burger::GetVoxelColor(VoxelType type)const
 {
