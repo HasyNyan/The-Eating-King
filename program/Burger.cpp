@@ -1,21 +1,5 @@
 #include "Burger.h"
 
-Burger::Burger()
-	:m_modelHandle(-1)
-	, m_isBitten(false)
-	, m_voxelSize(0.5f)
-{
-	// 配列のゼロクリア
-	for (int x = 0; x < BURGER_SIZE_X; ++x) {
-		for (int y = 0; y < BURGER_SIZE_Y; ++y) {
-			for (int z = 0; z < BURGER_SIZE_Z; ++z) {
-				m_grid[x][y][z] = VoxelType::None;
-			}
-		}
-	}
-}
-
-
 Burger::~Burger()
 {
 	//読み込んだ3Dモデルのメモリ解放
@@ -29,7 +13,6 @@ Burger::~Burger()
 void Burger::Initialize()
 {
 	m_position = VGet(0.0f, 0.0f, 0.0f);//原点に配置
-	m_isBitten = false;
 	//3Dモデルファイルの読み込み
 	m_modelHandle = MV1LoadModel("Assets/Models/hamburger/hambuger.mv1");
 	//モデルのサイズを調整
@@ -37,7 +20,35 @@ void Burger::Initialize()
 	{
 		MV1SetScale(m_modelHandle, VGet(0.1f, 0.1f, 0.1f));
 	}
+	//ボクセルと状態の初期化
+	Reset();
+}
 
+void Burger::Reset()
+{
+	m_isBitten = false;
+	m_rotation = VGet(0.0f, 0.0f, 0.0f);//角度も正面に戻す
+	m_initialVoxelCount = 0;//カウントリセット
+	//配膳演出からスタート
+	m_state = BurgerState::Spawning;
+	m_stateTimer = 0.0f;
+	m_currentScale =  0.0f;
+	m_position = m_tablePos;
+
+	if (m_modelHandle != -1)
+	{
+		MV1SetPosition(m_modelHandle, m_position);
+		MV1SetScale(m_modelHandle, VGet(0.0f, 0.0f, 0.0f));
+	}
+
+	// 配列のゼロクリア
+	for (int x = 0; x < BURGER_SIZE_X; ++x) {
+		for (int y = 0; y < BURGER_SIZE_Y; ++y) {
+			for (int z = 0; z < BURGER_SIZE_Z; ++z) {
+				m_grid[x][y][z] = VoxelType::None;
+			}
+		}
+	}
 	//内部のボクセルデータ敷き詰め
 	for (int x = 0; x < BURGER_SIZE_X; ++x)
 	{
@@ -55,20 +66,87 @@ void Burger::Initialize()
 				else if (y == 10)	m_grid[x][y][z] = VoxelType::Cheese;	//チーズ
 				else if (y == 12)	m_grid[x][y][z] = VoxelType::Lettuce;	//レタス
 				else 				m_grid[x][y][z] = VoxelType::Bun;		//上バンズ
-				
+
+				//生成したボクセルの総数を記録
+				m_initialVoxelCount++;
+
 			}
 		}
+	}
+
+}
+
+void Burger::Grab()
+{
+	//テーブルに置かれている時だけ掴める
+	if (m_state == BurgerState::OnTable)
+	{
+		m_state = BurgerState::MovingToMouth;
+		m_stateTimer = 0.0f;
 	}
 }
 
 void Burger::Update()
 {
-	//モデルの位置を設定
+	switch (m_state)
+	{
+	case BurgerState::Spawning:
+		UpdateSpawning();
+		break;
+	case BurgerState::OnTable:
+		//テーブル上で待機中(掴まれるのを待つ)
+		break;
+	case BurgerState::MovingToMouth:
+		UpdateMovingToMouth();
+		break;
+	case BurgerState::Eating:
+		//食事中のみマウスドラッグ回転を受け付ける
+		UpdateRotationInput();
+		break;
+	}
+}
+
+void Burger::UpdateSpawning()
+{
+	m_stateTimer += m_deltaTime;
+	float t = m_stateTimer / SPAWN_DURATION;
+
+	if (t >= 1.0f)
+	{
+		t = 1.0f;
+		m_state = BurgerState::OnTable;//配膳完了 -> テーブル待機状態へ
+	}
+	//スケールを0.0からBASE_MODEL_SCALEへ拡大
+	m_currentScale = BASE_MODEL_SCALE * t;
 	if (m_modelHandle != -1)
 	{
-		MV1SetPosition(m_modelHandle, m_position);
+		MV1SetScale(m_modelHandle, VGet(m_currentScale, m_currentScale, m_currentScale));
+	}
+}
+
+void Burger::UpdateMovingToMouth()
+{
+	m_stateTimer += m_deltaTime;
+	float t = m_stateTimer / MOVE_DURATION;
+
+	if (t >= 1.0f)
+	{
+		t = 1.0f;
+		m_state = BurgerState::Eating;//到着->食事状態へ移行
 	}
 
+	//イージング
+	float easeT = 1.0f - std::pow(1.0f - t, 3.0f);
+
+	//テーブル座標からカメラ前座標へ線形補間
+	m_position.x = m_tablePos.x + (m_mouthPos.x - m_tablePos.x) * easeT;
+	m_position.y = m_tablePos.y + (m_mouthPos.y - m_tablePos.y) * easeT;
+	m_position.z = m_tablePos.z + (m_mouthPos.z - m_tablePos.z) * easeT;
+
+}
+
+void Burger::UpdateRotationInput()
+{
 	int mouseX, mouseY;
 	GetMousePoint(&mouseX, &mouseY);
 
@@ -77,7 +155,6 @@ void Burger::Update()
 	{
 		int diffX = mouseX - m_prevMouseX;
 		int diffY = mouseY - m_prevMouseY;
-
 		//移動量に応じて回転角を加算
 		m_rotation.y += diffX * 0.005f;//左右ドラッグでY軸回転
 		m_rotation.x += diffY * 0.005f;//上下ドラッグでX軸回転
@@ -85,7 +162,6 @@ void Burger::Update()
 	//現在のマウス位置を保存
 	m_prevMouseX = mouseX;
 	m_prevMouseY = mouseY;
-
 }
 
 void Burger::Draw()
@@ -98,6 +174,8 @@ void Burger::Draw()
 		MV1SetPosition(m_modelHandle, m_position);
 		//モデルの回転を設定
 		MV1SetRotationXYZ(m_modelHandle, m_rotation);
+
+		MV1SetScale(m_modelHandle, VGet(m_currentScale, m_currentScale, m_currentScale));
 
 		MV1DrawModel(m_modelHandle);
 		return;
@@ -144,12 +222,30 @@ void Burger::Draw()
 			}
 		}
 	}
+	SetUseBackCulling(TRUE);
 }
 
-bool Burger::Bite(int targetX, int targetY, int targetZ, int radius)
+
+bool Burger::IsEmpty()const
+{
+	for (int x = 0; x < BURGER_SIZE_X; ++x) {
+		for (int y = 0; y < BURGER_SIZE_Y; ++y) {
+			for (int z = 0; z < BURGER_SIZE_Z; ++z) {
+				if (m_grid[x][y][z] != VoxelType::None)
+				{
+					return false; //1つでも残っていれば未完食
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
+int Burger::Bite(int targetX, int targetY, int targetZ, int radius)
 {
 	m_isBitten = true;//噛まれたのでボクセル表示モードへ切り替え
-	bool ateSomething = false;
+	int erasedCount = 0;
 
 	//噛んだ中心点から球範囲のボクセルを空にする
 	for (int x = targetX - radius; x <= targetX + radius; ++x)
@@ -170,18 +266,21 @@ bool Burger::Bite(int targetX, int targetY, int targetZ, int radius)
 					if (m_grid[x][y][z] != VoxelType::None)
 					{
 						m_grid[x][y][z] = VoxelType::None;
-						ateSomething = true;
+						erasedCount++;
 					}
 				}
 
 			}
 		}
 	}
-	return ateSomething;
+	return erasedCount;
 }
 
 int Burger::BiteByRay(VECTOR rayOrigin, VECTOR rayDir, int radius)
 {
+	//食事状態以外なら抜け出す
+	if (m_state != BurgerState::Eating)return 0;
+
 	//レイの方向ベクトルを正規化
 	VECTOR normDir = VNorm(rayDir);
 
