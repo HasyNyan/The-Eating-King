@@ -148,6 +148,7 @@
     <ClInclude Include="program\Burger.h" />
     <ClInclude Include="program\BurgerCompetitor.h" />
     <ClInclude Include="program\Camera.h" />
+    <ClInclude Include="program\ContestTable.h" />
     <ClInclude Include="program\Game.h" />
     <ClInclude Include="program\GameScene.h" />
     <ClInclude Include="program\GameTimer.h" />
@@ -163,6 +164,7 @@
     <ClCompile Include="program\Burger.cpp" />
     <ClCompile Include="program\BurgerCompetitor.cpp" />
     <ClCompile Include="program\Camera.cpp" />
+    <ClCompile Include="program\ContestTable.cpp" />
     <ClCompile Include="program\Game.cpp" />
     <ClCompile Include="program\GameScene.cpp" />
     <ClCompile Include="program\GameTimer.cpp" />
