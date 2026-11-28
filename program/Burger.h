@@ -29,9 +29,15 @@ private:
 	static constexpr float SPAWN_DURATION	= 0.25f;	//配膳演出の時間
 	static constexpr float MOVE_DURATION	= 0.30f;	//持ち上げ移動の時間
 
+	//噛み判定アシスト用定数
+	static constexpr int RAY_SEARCH_RADIUS = 2;		//レイの太さ
+	static constexpr float LAST_BITE_THRESHOLD = 0.08f;//残り8%以下でラスト一口アシスト発動
+
+
 	int	 m_modelHandle = -1;
 	bool m_isBitten	   = false; //1度でも噛まれたかどうか
 	int m_initialVoxelCount = 0;//初期状態の総ボクセル数
+	int m_remainingVoxelCount = 0;//現在の残りボクセル数
 
 	//3Dグリッド配列
 	VoxelType m_grid[BURGER_SIZE_X][BURGER_SIZE_Y][BURGER_SIZE_Z]{};
@@ -55,6 +61,11 @@ private:
 	//各ボクセルの種類に応じた描画色を取得するヘルパー関数
 	unsigned int GetVoxelColor(VoxelType type)const;
 
+	//指定座標の周辺に有効なボクセルがあればその座標を返す
+	bool FindNearestVoxel(int centerX, int centerY, int centerZ, int searchRadius, int& outX, int& outY, int& outZ)const;
+	//残っているすべてのボクセルを一気に消去する
+	int ConsumeAllRemaining();
+
 	//状態ごとの更新ヘルパー
 	void UpdateSpawning();
 	void UpdateMovingToMouth();
@@ -70,6 +81,7 @@ public:
 
 	void SetDeltaTime(float dt) { m_deltaTime = dt; }
 	int GetInitialVoxelCount()const { return m_initialVoxelCount; }
+	int GetRemainingVoxelCount()const { return m_remainingVoxelCount; }
 	BurgerState GetState() const { return m_state; }
 
 	//テーブル上のバーガーを掴んでカメラ前へ持ち上げる
